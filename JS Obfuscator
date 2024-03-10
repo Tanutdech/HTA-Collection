@@ -1,0 +1,155 @@
+
+	<head>
+		<title>JavaScript Obfus 2.10</title>
+	             <META CHARSET="utf-8">
+		<HTA:APPLICATION
+		  APPLICATIONNAME="JavaScriptObf"
+		  ICON="wscript.exe"
+		  BORDER="dialog"
+		  INNERBORDER="no"
+		  WINDOWSTATE="MAXIMIZE"
+		  VERSION="1.0"/>
+			<style>
+			Label {	
+					color : #FFFFFF;
+					font-family : "Courrier New";
+			}
+			input {
+					border: 3px solid #777777;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+					color:#FFFFFF;
+					background-color: #000000;
+			}
+			textarea {
+					float:left; 
+					width: 100%;
+					height: 60%;
+					border: 3px solid #777777;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+			}
+
+		</style>
+	</head>
+	<script language="VBScript">
+		public OK
+
+		Sub SaveIt
+			Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value & ".JSE", 2, True)
+			IsData = id("MyInput").innerText
+			file.Write(IsData)
+			file.Close
+			msgbox "Saved!"
+		End Sub
+
+		Function id(o)
+			Set id = document.getElementById(o)
+		End Function
+
+		Sub OpenFile
+			if InputFile.Value <> "" then
+				set fso = CreateObject("Scripting.FileSystemObject")
+				set file = fso.OpenTextFile(InputFile.Value, 1, True)
+				set gfile = fso.GetFile(InputFile.Value)
+				if (gfile.Attributes and 1) <> 0 then
+					msgbox "This File Read Only... Attribute"
+				else
+					id("MyInput").innerText = file.ReadAll
+					file.Close
+				end if
+				file.Close
+			end if
+		End Sub
+
+		sub IsOK
+			if MyInput.Value = "" then
+				msgbox "Error! Empty Input Data..."
+				OK = Flase
+			else
+				OK = True
+			end if
+		end sub
+		sub IsXorChr
+			dim IsPass
+			dim IsData
+			dim IsCMD
+			dim IsRun
+			if PW.Value = "" then
+				msgbox "Please Enter PassWord"
+			else
+				IsOk
+				if OK then
+					IsPass = ""
+					for n = 1 to len(PW.Value)
+						IsPass = IsPass & cstr(asc(mid(PW.Value,n,1)))
+						if n < len(PW.Value) then IsPass = IsPass & ","
+					next
+					o = 1
+					for n = 1 to len(MyInput.Value)
+						if o > len(PW.Value) then o = 1
+						IsData = IsData & cstr(asc(mid(MyInput.Value,n,1)) xor asc(mid(PW.Value,o,1)))
+						if n < len(MyInput.Value) then IsData = IsData & ","
+						o = o + 1
+					next
+					IsCMD = "a=(" & chr(34) & IsData & chr(34) & ").split(" & chr(34) & "," & chr(34) & ");b=(" & chr(34) & IsPass & chr(34) & ").split(" & chr(34) & "," & chr(34) & ");var c=0;var d=" & chr(34) & chr(34) & ";for(e=0;e<=a.length-1;e++){if(c>=b.length){c=0;}d=d+String.fromCharCode(Number(a[e])^Number(b[c]));c=c+1;}eval(d);"
+					MyInput.Value = IsCMD
+				end if
+			end if
+		end sub
+
+		Sub EncoderJSE()
+			Set scrEnc = CreateObject("Scripting.Encoder")
+			MyInput.value = scrENC.EncodeScriptFile(".JS", MyInput.Value, 0, "")
+		End Sub
+
+		sub JSEToEXE
+			Dim file, content, line, FSO
+			set FSO = CreateObject("Scripting.FileSystemObject")
+			if not FSO.FileExists(InputFile.Value & ".JSE") Then msgbox "Please Save Content...": Exit sub
+			Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value & ".JSE", 1, True)
+			content = "var content = " & chr(34) & "\n" & chr(34) & ";" & vbCRLF
+			Do Until file.AtEndOfStream
+				line = file.ReadLine
+				line = replace(line,"\", "\\")
+				line = replace(line,chr(34),"\" & chr(34))
+				line = replace(line,chr(39),"\" & chr(39))
+				line = "content = content + " & chr(34) & line & "\n" & chr(34) & ";"
+				content = content & line & vbCRLF
+			Loop
+			content = content & "var wshShell = new ActiveXObject(" & chr(34) & "WScript.Shell" & chr(34) & ");" & vbCRLF
+			content = content & "var fso = new ActiveXObject(" & chr(34) & "Scripting.FileSystemObject" & chr(34) & ");" & vbCRLF
+			content = content & "var tmp = wshShell.ExpandEnvironmentStrings(" & chr(34) & "%TEMP%" & chr(34) & ");" & vbCRLF
+			content = content & "var file = fso.CreateTextFile(tmp + " & chr(34) & "\\IsRun.JSE" & chr(34) & ",true);" & vbCRLF
+			content = content & "file.Write(content);" & vbCRLF
+			content = content & "file.Close();" & vbCRLF
+			content = content & "wshShell.Run(tmp + " & chr(34) & "\\IsRun.JSE" & chr(34) & ");" & vbCRLF
+			Set WS=CreateObject("WScript.Shell")
+			Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(WS.ExpandEnvironmentStrings("%TEMP%") & "\IsRun.JS", 2, True)
+			file.Write(content)
+			file.Close
+			CreateObject("WScript.Shell").Run "cmd /c for /f " & chr(34) & "tokens=* delims=" & chr(34) & " %v in ('dir /b /s /a:-d  /o:-n " & chr(34) & "%SystemRoot%\Microsoft.NET\Framework\*jsc.exe" & chr(34) & "') do (set jsc=" & chr(34) & "%v" & chr(34) & ")&%v /nologo /out:" & chr(34) & ".\My JavaScript  Application.EXE" & chr(34) & " " & chr(34) & "%TEMP%\IsRun.JS" & chr(34)
+			msgbox "Complired!"
+		end sub
+
+	</script>
+	<body bgcolor=#000000 style="color:#FFFFFF; font-family:'Lucida Sans;'">
+		<pre>
+     ██╗███████╗     ██████╗ ██████╗ ███████╗██╗   ██╗███████╗ ██████╗ █████╗ ████████╗ ██████╗ ██████╗     
+     ██║██╔════╝    ██╔═══██╗██╔══██╗██╔════╝██║   ██║██╔════╝██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗██╔══██╗    
+     ██║███████╗    ██║   ██║██████╔╝█████╗  ██║   ██║███████╗██║     ███████║   ██║   ██║   ██║██████╔╝    
+██   ██║╚════██║    ██║   ██║██╔══██╗██╔══╝  ██║   ██║╚════██║██║     ██╔══██║   ██║   ██║   ██║██╔══██╗    
+╚█████╔╝███████║    ╚██████╔╝██████╔╝██║     ╚██████╔╝███████║╚██████╗██║  ██║   ██║   ╚██████╔╝██║  ██║    
+ ╚════╝ ╚══════╝     ╚═════╝ ╚═════╝ ╚═╝      ╚═════╝ ╚══════╝ ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝    
+		</pre>
+		<label>Select JavaScript File...</label>
+		<input type="file" name="InputFile" id="InputFile" onChange="Openfile"> Author by : Tanutdech  Boonluelak, 2024.<br>
+		<label>Password from polymorphism</label>
+		<input type="text" id="PW">
+		<input type="button" value="eXcusive OR charactor" onclick="IsXorChr">
+		<input type="button" value="Encoder to JSE" onclick="EncoderJSE">
+		<input type="button" value="Save Content" onclick="SaveIt">
+		<input type="button" value="JSE to EXE" onclick="JSETOEXE"><br><br>
+		<textarea id="MyInput" STYLE="BACKGROUND-COLOR:#000000; COLOR:FFFFFF;"></textarea>
+	</body>
+</html>
