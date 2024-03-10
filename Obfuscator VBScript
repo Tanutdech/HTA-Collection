@@ -1,0 +1,178 @@
+<html>
+	<head>
+		<title>VBS Obfuscator 2.20</title>
+		<META CHARSET="utf-8">
+		<HTA:APPLICATION
+		  APPLICATIONNAME="VBStoVBE"
+		  ID="VBStoVBE"
+		  ICON="Explorer.exe"
+		  BORDER="dialog"
+		  INNERBORDER="no"
+		  WINDOWSTATE="MAXIMIZE"
+		  VERSION="2.0"/>
+			<style>
+			Label {	
+					color : #FFFFFF;
+					font-family : "Courrier New";
+			}
+			input {
+					border: 3px solid #777777;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+					color:#FFFFFF;
+					background-color: #000000;
+			}
+			textarea {
+					float:left; 
+					width: 100%;
+					height: 60%;
+					border: 3px solid #777777;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+			}
+
+		</style>
+	</head>
+	<script language="VBScript">
+		public OK
+		Sub SaveIt
+			Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value & ".VBE", 2, True)
+			IsData = id("MyInput").innerText
+			file.Write(IsData)
+			file.Close
+			msgbox "Saved!"
+		End Sub
+
+		Function id(o)
+			Set id = document.getElementById(o)
+		End Function
+
+		Sub OpenFile
+			if InputFile.Value <> "" then
+				set fso = CreateObject("Scripting.FileSystemObject")
+				set file = fso.OpenTextFile(InputFile.Value, 1, True)
+				set gfile = fso.GetFile(InputFile.Value)
+				if (gfile.Attributes and 1) <> 0 then
+					msgbox "This File Read Only... Attribute"
+				else
+					id("MyInput").innerText = file.ReadAll
+					file.Close
+				end if
+				file.Close
+			end if
+		End Sub
+
+		sub IsOK
+			if MyInput.Value = "" then
+				msgbox "Error! Empty Input Data..."
+				OK = Flase
+			else
+				OK = True
+			end if
+		end sub
+		sub IsXorChr
+			dim IsPass
+			dim IsData
+			dim IsCMD
+			dim IsRun
+			if PW.Value = "" then
+				msgbox "Please Enter PassWord"
+			else
+				IsOk
+				c = 0
+				if OK then
+				IsPass = chr(34) & chr(34)
+					for n = 1 to len(PW.Value)
+						IsPass = IsPass & "&chr(" & asc(mid(PW.Value,N,1)) & ")"
+					next
+					for n = 1 to len(MyInput.Value)
+						c = c + 1
+						x = mid(PW.Value,c,1)
+						if c = len(PW.Value) then c = 0
+						IsData = IsData & "chr(" & (asc(mid(MyInput.Value,n,1)) xor asc(x)) & ")"
+						if n < len(MyInput.Value) then IsData = IsData & "&"
+					next
+					IsCMD = "i="&IsData&":p=" & IsPass & ":a="&chr(34)&chr(34)&":b=0:for c=1 to len(i):b=b+1:a=a&chr(asc(mid(i,c,1)) xor asc(mid(p,b,1))):if b=len(p) then:b=0:end if:next:ExecuteGlobal a"
+					MyInput.Value = IsCMD
+				end if
+			end if
+		end sub
+
+		Function form(n)
+			r = int(rnd * 10000)
+			k = int(rnd * 3)
+			if( k = 0) then ret = (r+n) & "-" & r
+			if( k = 1) then ret = (n-r) & "+" & r
+			if( k = 2) then ret = (n*r) & "/" & r
+			form = ret
+		End Function
+		sub DoctorLai
+			dim IsData
+			dim IsCMD
+			IsOk
+			if OK then 
+				enc = ""
+				for i = 1 to len(MyInput.Value)
+					enc = enc & "chr( " & form( asc(mid(MyInput.Value,i,1)) ) & " ) & "
+				next
+				MyInput.Value = "ExecuteGlobal " & enc & " vbcrlf "
+			end if
+		end sub
+
+		Sub EncoderVBE()
+			Set scrEnc = CreateObject("Scripting.Encoder")
+			MyInput.value = scrENC.EncodeScriptFile(".vbs", MyInput.Value, 0, "")
+		End Sub
+
+			sub VBEToEXE
+				Dim file, content, line, FSO
+				set FSO = CreateObject("Scripting.FileSystemObject")
+				if not FSO.FileExists(InputFile.Value & ".VBE") Then msgbox "Please Save Content...": Exit sub
+				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value & ".VBE", 1, True)
+				content = "var content = " & chr(34) & "\n" & chr(34) & ";" & vbCRLF
+				Do Until file.AtEndOfStream
+					line = file.ReadLine
+					line = replace(line,"\", "\\")
+					line = replace(line,chr(34),"\" & chr(34))
+					line = replace(line,chr(39),"\" & chr(39))
+					line = "content = content + " & chr(34) & line & "\n" & chr(34) & ";"
+					content = content & line & vbCRLF
+				Loop
+				content = content & "var wshShell = new ActiveXObject(" & chr(34) & "WScript.Shell" & chr(34) & ");" & vbCRLF
+				content = content & "var fso = new ActiveXObject(" & chr(34) & "Scripting.FileSystemObject" & chr(34) & ");" & vbCRLF
+				content = content & "var tmp = wshShell.ExpandEnvironmentStrings(" & chr(34) & "%TEMP%" & chr(34) & ");" & vbCRLF
+				content = content & "var file = fso.CreateTextFile(tmp + " & chr(34) & "\\IsRun.VBE" & chr(34) & ",true);" & vbCRLF
+				content = content & "file.Write(content);" & vbCRLF
+				content = content & "file.Close();" & vbCRLF
+				content = content & "wshShell.Run(tmp + " & chr(34) & "\\IsRun.VBE" & chr(34) & ");" & vbCRLF
+				Set WS=CreateObject("WScript.Shell")
+				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(WS.ExpandEnvironmentStrings("%TEMP%") & "\IsRun.JS", 2, True)
+				file.Write(content)
+				file.Close
+				CreateObject("WScript.Shell").Run "cmd /c for /f " & chr(34) & "tokens=* delims=" & chr(34) & " %v in ('dir /b /s /a:-d  /o:-n " & chr(34) & "%SystemRoot%\Microsoft.NET\Framework\*jsc.exe" & chr(34) & "') do (set jsc=" & chr(34) & "%v" & chr(34) & ")&%v /nologo /out:" & chr(34) & ".\My VBScript  Application.EXE" & chr(34) & " " & chr(34) & "%TEMP%\IsRun.JS" & chr(34)
+				msgbox "Complired!"
+			end sub
+	</script>
+	<body bgcolor=#000000 style="color:#FFFFFF; font-family:'Lucida Sans;'">
+		<pre>
+<span style="color:red"   > 888     888 888888b.    .d8888b.       .d88888b.  888       .d888                                     888                          </span>
+<span style="color:white" > 888     888 888  '88b  d88P  Y88b     d88P' 'Y88b 888      d88P'                                      888                          </span>
+<span style="color:white" > 888     888 888  .88P  Y88b.          888     888 888      888                                        888                          </span>
+<span style="color:blue"  > Y88b   d88P 8888888K.   'Y888b.       888     888 88888b.  888888 888  888 .d8888b   .d8888b  8888b.  888888 .d88b.  888d888       </span>
+<span style="color:blue"  >  Y88b d88P  888  'Y88b     'Y88b.     888     888 888 '88b 888    888  888 88K      d88P'        '88b 888   d88''88b 888P'         </span>
+<span style="color:white" >   Y88o88P   888    888       '888     888     888 888  888 888    888  888 'Y8888b. 888      .d888888 888   888  888 888           </span>
+<span style="color:white" >    Y888P    888   d88P Y88b  d88P     Y88b. .d88P 888 d88P 888    Y88b 888      X88 Y88b.    888  888 Y88b. Y88..88P 888           </span>
+<span style="color:red"   >     Y8P     8888888P'   'Y8888P'       'Y88888P'  88888P'  888     'Y88888  88888P'  'Y8888P 'Y888888  'Y888 'Y88P'  888           </span>
+		</pre>
+		<label>Select VBScript File...</label>
+		<input type="file" name="InputFile" id="InputFile" onChange="Openfile"> Author by : Tanutdech  Boonluelak, 2023 & (Credit) Hackoo, 2012 & DoctorLai (Github)<br>
+		<label>Password from polymorphism</label>
+		<input type="text" id="PW">
+		<input type="button" value="Excusive OR Charactor" onclick="IsXorChr">
+		<input type="button" value="DoctorLai  Algolitsm" onclick="DoctorLai">
+		<input type="button" value="Encoder to VBE" onclick="EncoderVBE">
+		<input type="button" value="Save Content" onclick="SaveIt">
+		<input type="button" value="VBS to EXE" onclick="VBETOEXE"></br></br>
+		<textarea id="MyInput" STYLE="BACKGROUND-COLOR:#000000; COLOR:FFFFFF;"></textarea>
+	</body>
+</html>
