@@ -1,0 +1,256 @@
+<html><head>
+		<HTA:APPLICATION	ID="OBFUSCATOR"
+					APPLICATIONNAME="Obfuscator 2.66"
+					WINDOWSTATE="maximize"
+					ICON="%SystemRoot%\system32\cmd.exe"
+		>
+		<title>Obfuscator 2.66</title>
+	        <META CHARSET="utf-8">
+		<style>
+			textarea {
+					float:left; 
+					width: 100%;
+					height: 100%;
+					border: 3px solid #007700;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+			}
+			input {
+					border: 3px solid #007700;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+					color:#00FF00;
+					background-color: #000000;
+			}
+		</style>
+		<script language="VBScript">
+			Public file
+			Public IsFound
+			Sub window_onLoad()
+				MyTitle = document.Title
+				id("MyInput").focus
+				PreviewSize
+			End Sub
+			Sub PreviewSize
+				winW = document.body.offsetWidth
+				winH = document.body.offsetHeight
+				id("MyInput").cols = Int(winW)
+				id("MyInput").rows = 25
+			End Sub
+			Function id(o)
+				Set id = document.getElementById(o)
+			End Function
+			Sub OpenFile
+				if InputFile.Value <> "" then
+					set fso = CreateObject("Scripting.FileSystemObject")
+					set file = fso.OpenTextFile(InputFile.Value, 1, True)
+					set gfile = fso.GetFile(InputFile.Value)
+					if (gfile.Attributes and 1) <> 0 then
+						msgbox "This File Read Only... Attribute"
+					else
+						id("MyInput").innerText = file.ReadAll
+						file.Close
+					end if
+					file.Close
+				end if
+			End Sub
+			Sub ReplaceIt
+				if IsFind.Value <> "" then
+					if IsFind.Value = "vbCRLF" then 
+						id("MyInput").innerText = replace(id("MyInput").innerText, vbCRLF, IsReplace.Value)
+					else
+						id("MyInput").innerText = replace(id("MyInput").innerText, IsFind.Value, IsReplace.Value)
+					end if
+				end if
+			End Sub
+			sub FixvbCRLF
+				id("MyInput").innerText = replace(id("MyInput").innerText, vbCRLF & vbCRLF & vbCRLF, vbCRLF)
+				id("MyInput").innerText = replace(id("MyInput").innerText, vbCRLF & vbCRLF, vbCRLF)
+			end sub
+			sub OptimizeIt
+				id("MyInput").innerText = replace(id("MyInput").innerText, vbTab & vbTab & vbTab, vbTab)
+				id("MyInput").innerText = replace(id("MyInput").innerText, vbTab & vbTab, vbTab)
+				id("MyInput").innerText = replace(id("MyInput").innerText, vbTab, " ")
+				id("MyInput").innerText = replace(id("MyInput").innerText, "   ", "  ")
+				id("MyInput").innerText = replace(id("MyInput").innerText, "  ", " ")
+			end sub
+			Sub SaveIt
+				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value, 2, True)
+				IsData = id("MyInput").innerText
+				IsData = replace(IsData, chr(13), "")
+				file.Write(IsData)
+				file.Close
+				msgbox "Saved!"
+			End Sub
+			sub RunAdmin
+				if instr(1,id("MyInput").innerText,":IsRun") <> 0 then
+					msgbox "Found Script..."
+					exit sub
+				end if
+				FindUnicode
+				if IsFound then
+					IsData = chr(255) & chr(254) & vbCRLF & "@cls" & vbCRLF
+					IsData = IsData & "@echo off" & vbCRLF
+				else
+					IsData = "@echo off" & vbCRLF
+				end if
+				IsData = IsData & "	fsutil dirty query %systemdrive% >nul" & vbCRLF
+				IsData = IsData & "	if %errorlevel% == 0 goto :IsRun" & vbCRLF
+				IsData = IsData & "	( echo Set UAC = CreateObject^(" & chr(34) & "Shell.Application" & chr(34) & "^)" & vbCRLF
+				IsData = IsData & "		echo UAC.ShellExecute " & chr(34) & "cmd.exe" & chr(34) & ", " & chr(34) & "/c %~s0 %~1" & chr(34) & ", " & chr(34) & chr(34) & ", " & chr(34) & "runas" & chr(34) & ", 1" & vbCRLF
+				IsData = IsData & "	)> " & chr(34) & "%temp%\RunAdmin.vbs" & chr(34) & vbCRLF
+				IsData = IsData & "	" & chr(34) & "%temp%\RunAdmin.vbs" & chr(34) & vbCRLF
+				IsData = IsData & "	del " & chr(34) & "%temp%\RunAdmin.vbs" & chr(34) & vbCRLF
+				IsData = IsData & "goto :eof" & vbCRLF
+				IsData = IsData & ":IsRun" & vbCRLF
+				if IsFound then
+					id("MyInput").innerText = IsData & replace(id("MyInput").innerText, chr(255) & chr(254) & vbCRLF & "@cls" & vbCRLF, "")
+				else
+					id("MyInput").innerText = IsData & id("MyInput").innerText
+				end if
+			end sub
+			sub FindUnicode
+				if instr(1,id("MyInput").innerText,chr(255) & chr(254)) <> 0 then
+					IsFound = True
+				else
+					IsFound = False
+				end if
+			end sub
+			sub HackUnicode
+				FindUnicode
+				if IsFound then
+					msgbox "Found Unicode"
+					exit sub
+				end if
+				if not IsFound then
+					IsData = chr(255) & chr(254) & vbCRLF & "@cls" & vbCRLF
+				else
+					IsData = ""
+				end if
+				id("MyInput").innerText = IsData & id("MyInput").innerText
+			end sub
+			sub EncriptBAT
+				if instr(1,id("MyInput").innerText ,"@echo off&Set _") <> 0 then
+					msgbox "Obfucated..."
+					exit sub
+				end if
+				randomize
+				a = ""
+				old_a = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ()[]{}@"
+				for n = 1 to len(Old_a)
+					IsRnd =  mid(old_a,((rnd*10000) mod len(Old_a) + 1),1)
+					a = a & IsRnd
+					old_a = replace(Old_a,IsRnd,"")
+				next
+				FindUnicode
+				id("MyInput").innerText = replace(id("MyInput").innerText,chr(255) & chr(254) & vbCRLF & "@cls" & vbCRLF,"")
+				id("MyInput").innerText = replace(id("MyInput").innerText,"%","%_0%")
+				id("MyInput").innerText = replace(id("MyInput").innerText,chr(34),"%_00%")
+				for n = 1 to len(a)
+					id("MyInput").innerText = replace(id("MyInput").innerText,mid(a,n,1),"%_" & n & "%")
+				next
+				id("MyInput").innerText = vbCRLF & id("MyInput").innerText
+				for n = 1 to len(a)
+					id("MyInput").innerText = "&Set _" & n & "=" & mid(a,n,1) & id("MyInput").innerText
+				next
+				id("MyInput").innerText = "@echo off" & id("MyInput").innerText
+				IsData = id("MyInput").innerText
+				for n = 1 to len(id("MyInput").innerText)
+					o = instr(n,id("MyInput").innerText,vbLF)
+					if o > 0 then
+						p = mid(id("MyInput").innerText,n,o-n)
+						if left(p,1) = ":" then
+							if left(p,2) <> "::" or left(p,3) = ":::" then
+								r = p
+								x = r
+								for q = 1 to len(a)
+									r = replace(r,"%_" & q & "%",mid(a,q,1))
+								next
+								IsData = replace(IsData,x,r)
+							end if
+						end if
+						for s = 1 to len(p)
+							t = instr(s,p,"%_0%")
+							u = instr(t+1,p,"%_0%")
+							if t > 0 and u > 0 then
+								v = mid(p,t,u-t+4)
+								w = v
+								for q = 1 to len(a)
+									v = replace(v,"%_" & q & "%",mid(a,q,1))
+								next
+								IsData = replace(IsData,w,v)
+								s = u
+							end if
+						next
+						n = o
+					end if
+				next
+				IsData = replace(IsData,"%_0%","%")
+				IsData = replace(IsData,"%_00%",chr(34))
+				id("MyInput").innerText = IsData
+				if IsFound then id("MyInput").innerText = chr(255) & chr(254) & vbCRLF & "@cls" & vbCRLF & id("MyInput").innerText
+			end sub
+			sub BatToEXE
+				Dim file, content, line
+				FindUnicode
+				if IsFound then
+					msgbox "Can't Unicode"
+					exit sub
+				end if
+				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value, 1, True)
+				content = "var content = " & chr(34) & "\n" & chr(34) & ";" & vbCRLF
+				Do Until file.AtEndOfStream
+					line = file.ReadLine
+					line = replace(line,"\", "\\")
+					line = replace(line,chr(34),"\" & chr(34))
+					line = replace(line,chr(39),"\" & chr(39))
+					line = "content = content + " & chr(34) & line & "\n" & chr(34) & ";"
+					content = content & line & vbCRLF
+				Loop
+				content = content & "var wshShell = new ActiveXObject(" & chr(34) & "WScript.Shell" & chr(34) & ");" & vbCRLF
+				content = content & "var fso = new ActiveXObject(" & chr(34) & "Scripting.FileSystemObject" & chr(34) & ");" & vbCRLF
+				content = content & "var tmp = wshShell.ExpandEnvironmentStrings(" & chr(34) & "%TEMP%" & chr(34) & ");" & vbCRLF
+				content = content & "var file = fso.CreateTextFile(tmp + " & chr(34) & "\\IsRun.CMD" & chr(34) & ",true);" & vbCRLF
+				content = content & "file.Write(content);" & vbCRLF
+				content = content & "file.Close();" & vbCRLF
+				content = content & "wshShell.Run(tmp + " & chr(34) & "\\IsRun.CMD" & chr(34) & ");" & vbCRLF
+				Set WS=CreateObject("WScript.Shell")
+				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(WS.ExpandEnvironmentStrings("%TEMP%") & "\IsRun.JS", 2, True)
+				file.Write(content)
+				file.Close
+				CreateObject("WScript.Shell").Run "cmd /c for /f " & chr(34) & "tokens=* delims=" & chr(34) & " %v in ('dir /b /s /a:-d  /o:-n " & chr(34) & "%SystemRoot%\Microsoft.NET\Framework\*jsc.exe" & chr(34) & "') do (set jsc=" & chr(34) & "%v" & chr(34) & ")&%v /nologo /out:" & chr(34) & ".\My Batch Application.EXE" & chr(34) & " " & chr(34) & "%TEMP%\IsRun.JS" & chr(34)
+				msgbox "Complired!"
+			end sub
+		</script>
+	</head>
+	<body bgcolor=#000000 style="color:#00FF00; font-family:'Lucida Sans;'">
+<pre>
+     ...      :::::::.   .-:::::' ...    :::  .::::::.    .,-:::::    :::.  ::::::::::::    ...     :::::::..       
+  .;;;;;;;.    ;;;'';;'  ;;;''''  ;;     ;;; ;;;`    `  ,;;;'````'    ;;`;; ;;;;;;;;'''' .;;;;;;;.  ;;;;``;;;;      
+ ,[[     \[[,  [[[__[[\. [[[,,== [['     [[[ '[==/[[[[, [[[          ,[[ '[[,    [[     ,[[     \[[, [[[,/[[['      
+ $$$,     $$$  $$''''Y$$ `$$$'`` $$      $$$   '''    $ $$$         c$$$cc$$$c   $$     $$$,     $$$ $$$$$$c        
+ '888,_ _,88P _88o,,od8P  888    88    .d888  88b    dP `88bo,__,o,  888   888,  88,    '888,_ _,88P 888b '88bo,    
+   'YMMMMMP'  ''YUMMMP'   'MM,    'YmmMMMM''   'YMmMY'    'YUMMMMMP' YMM   ''`   MMM      'YMMMMMP'  MMMM   'W'     
+
+ (Copyright) Tanutdech  Boonluelak, 2023.
+</pre>
+		<input type=file id=InputFile onchange="OpenFile">
+		<label>Find Text</label>
+		<input type=text id=IsFind>
+		<label>Replace Text</label>
+		<input type=text id=IsReplace>
+		<input type=button value="Replace All" onclick="ReplaceIt">
+		<input type=button value="Optimize vbCRLF" onclick="FixvbCRLF">
+		<input type=button value="Optimize Space Bar" onclick="OptimizeIt">
+		</br>
+		<input type=button value="Run Admin Script BAT" onclick="RunAdmin">
+		<input type=button value="Unicode Hack BAT" onclick="HackUnicode">
+		<input type=button value="Obfuscate BAT" onclick="EncriptBAT">
+		<input type=button value="Compile BAT to EXE" onclick="BatToEXE">
+		<input type=button value="Save Contents" onclick="SaveIt">
+		<div>
+			<textarea id="MyInput" STYLE="BACKGROUND-COLOR:#000000; COLOR:00FF00;">
+			</textarea>
+		</div>
+	</body>
+</html>
