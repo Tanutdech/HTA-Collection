@@ -1,0 +1,397 @@
+<html>
+	<head>
+		<HTA:APPLICATION ID="ScriptHacker" APPLICATIONNAME="Script Hacker" WINDOWSTATE="maximize">
+		<title>Script Hacker 2.02; Author by Tanutdech  Boonluelak. ThaiBatchFile.Blogspot.com</title>
+
+		<style type="text/css">
+			textarea {
+					border: 3px solid #00FF00;
+					padding: 5px;
+					color:#00FF00;
+					background-color: #000000;
+			}
+			input {
+					border: 3px solid #007700;
+					padding: 5px;
+					font-family: Tahoma, sans-serif;
+					color:#00FF00;
+					background-color: #000000;
+			}
+
+			div.forumline {	
+				background-color: #000000; 
+				color:#00FF00;
+				border: 2px #00FF00 solid; 
+				float:left; 
+				height:65%; 
+				width:50%; 
+				overflow:scroll; 
+				padding-left:8px; 
+				padding-top:6px;
+				font-family: Verdana, Arial, Helvetica, sans-serif; 
+				font-size: 12px;
+			}
+			body {
+					color:#00FF00;
+					background-color: #000000;
+			}
+		</style>
+		<META CHARSET="utf-8">
+
+		<script language="VBScript">
+			Public a, file, content, CaretPos, n, s, t, u, v, w, x, y, MyTitle, OldText, PrevSizeState
+			Sub window_onLoad()
+				strCommandLine = ScriptHacker.CommandLine
+				a = split(strCommandLine,chr(34) & " ")
+				MyTitle = document.Title
+				window.setInterval "UpdatePreview", 1000
+				x = ""
+				t = ""
+				call ContentVBScipt
+				id("MyInput").focus
+				id("MyInput").innerText = x
+				OldText = ""
+				PrevSizeState = 1
+			End Sub
+
+			Sub UpdatePreview
+				x = id("MyInput").innerText
+				If x = OldText And var<>2 Then
+					Exit Sub
+				End If
+				OldText = x
+				id("Result").innerHtml = x
+			End Sub
+
+			Sub SetTag(var)
+				u = document.selection.createRange().text
+				s = replace(u,vbCRLF,"")
+				w = u
+				if var = 1 then
+					v = "<b>" & replace(replace(u,"<b>",""),"</b>","") & "</b>"
+				elseif var = 2 then
+					v = "<i>" & replace(replace(u,"<i>",""),"</i>","") & "</i>"
+				elseif var = 3 then
+					v = "<u>" & replace(replace(u,"<u>",""),"</u>","") & "</u>"
+				elseif var = 4 then
+					call ClearHeadTag: v = "<h1>" & w & "</h1>" & vbCRLF
+				elseif var = 5 then
+					call ClearHeadTag: v = "<h2>" & w & "</h2>" & vbCRLF
+				elseif var = 6 then
+					call ClearHeadTag: v = "<h3>" & w & "</h3>" & vbCRLF
+				elseif var = 7 then
+					call ClearHeadTag: v = "<h4>" & w & "</h4>" & vbCRLF
+				elseif var = 8 then
+					call ClearHeadTag: v = "<h5>" & w & "</h5>" & vbCRLF
+				elseif var = 9 then
+					call ClearHeadTag: v = "<h6>" & w & "</h6>" & vbCRLF
+				elseif var = 10 then
+					v = u & "</br>" & vbCRLF
+				elseif var = 11 then
+					v = u & "<hr></hr>"
+				elseif var = 12 then
+					v = "<p>" & "&emsp;" & replace(replace(u,"<p>",""),"</p>","") & "</p>" & vbCRLF
+				elseif var = 13 then
+					v = "<big>" & replace(replace(u,"<big>",""),"</big>","") & "</big>"
+				elseif var = 14 then
+					v = "<small>" & replace(replace(u,"<small>",""),"</small>","") & "</small>"
+				elseif var = 15 then
+					v = "<strike>" & replace(replace(u,"<strike>",""),"</strike>","") & "</strike>"
+				elseif var = 16 then
+					v = "<sup>" & replace(replace(u,"<sup>",""),"</sup>","") & "</sup>"
+				elseif var = 17 then
+					v = "<sub>" & replace(replace(u,"<sub>",""),"</sub>","") & "</sub>"
+				elseif var = 18 then
+					v = "<address>" & replace(replace(u,"<address>",""),"</address>","") & "</address>"
+				elseif var = 19 then
+					v = "<xmp>" & replace(replace(u,"<xmp>",""),"</xmp>","") & "</xmp>"
+				elseif var = 20 then
+					v = "<center>" & replace(replace(u,"<center>",""),"</center>","") & "</center>"
+				elseif var = 21 then
+					v = u & "</nobr>"
+				elseif var = 22 then
+					v = "<wbr>" & replace(replace(u,"<wbr>",""),"</wbr>","") & "</wbr>"
+				elseif var = 23 then
+					v = "<pre>" & replace(replace(u,"<pre>",""),"</pre>","") & "</pre>" & vbCRLF
+				elseif var = 24 then
+					v = "<code>" & replace(replace(u,"<code>",""),"</code>","") & "</code>" & vbCRLF
+				elseif var = 25 then
+					call ClearAllTag: v = w
+				elseif var = 26 then
+					v = u & "&nbsp;"
+				elseif var = 27 then
+					v = u & "&ensp;"
+				elseif var = 28 then
+					v = u & "&emsp;"
+				elseif var = 29 then
+					call ClearAllColour: v = "<span style=" & chr(34) & "color:" & id("ColorSelection").value & chr(34) & ">" & w & "</span>"
+				elseif var = 30 then
+					v = "<del>" & replace(replace(u,"<del>",""),"</del>","") & "</del>"
+				elseif var = 31 then
+					v = "<strong>" & replace(replace(u,"<strong>",""),"</strong>","") & "</strong>"
+				elseif var = 32 then
+					v = "<em>" & replace(replace(u,"<em>",""),"</em>","") & "</em>"
+				elseif var = 33 then
+					v = "<ins>" & replace(replace(u,"<ins>",""),"</ins>","") & "</ins>"
+				end if
+				id("MyInput").focus
+				document.selection.createRange().text= v
+				call UpdatePreview
+			End Sub
+
+
+			Sub ClearHeadTag
+				w = replace(replace(w,"<h1>",""),"</h1>","")
+				w = replace(replace(w,"<h2>",""),"</h2>","")
+				w = replace(replace(w,"<h3>",""),"</h3>","")
+				w = replace(replace(w,"<h4>",""),"</h4>","")
+				w = replace(replace(w,"<h5>",""),"</h5>","")
+				w = replace(replace(w,"<h6>",""),"</h6>","")
+			End Sub
+
+			Sub ClearAllTag
+				call ClearAllColour
+				call ClearHeadTag
+				w = replace(replace(w,"<b>",""),"</b>","")
+				w = replace(replace(w,"<strong>",""),"</strong>","")
+				w =replace(replace(w,"<i>",""),"</i>","")
+				w =replace(replace(w,"<em>",""),"</em>","")
+				w =replace(replace(w,"<u>",""),"</u>","")
+				w =replace(replace(w,"<ins>",""),"</ins>","")
+				w =replace(w,"</br>","")
+				w =replace(w,"<hr></hr>","")
+				w =replace(replace(w,"<p>" & "&emsp;",""),"</p>","")
+				w =replace(replace(w,"<big>",""),"</big>","")
+				w =replace(replace(w,"<small>",""),"</small>","")
+				w =replace(replace(w,"<strike>",""),"</strike>","")
+				w =replace(replace(w,"<del>",""),"</del>","")
+				w =replace(replace(w,"<sup>",""),"</sup>","")
+				w =replace(replace(w,"<sub>",""),"</sub>","")
+				w =replace(replace(w,"<address>",""),"</address>","")
+				w =replace(replace(w,"<xmp>",""),"</xmp>","")
+				w =replace(replace(w,"<center>",""),"</center>","")
+				w =replace(w,"</nobr>", "")
+				w =replace(replace(w,"<wbr>",""),"</wbr>","")
+				w =replace(replace(w,"<pre>",""),"</pre>","")
+				w =replace(replace(w,"<code>",""),"</code>","")
+				w =replace(replace(replace(w,"&nbsp;",""),"&ensp;",""),"&emsp;","")
+			End Sub
+
+			sub ClearAllColour
+				w = replace(replace(w,"<span style=", ""), "</span>","")
+				w = replace(w, chr(34) & "color:#444444" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:darkred" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:red" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:orange" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:brown" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:yellow" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:green" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:olive" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:cyan" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:blue" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:darkblue" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:indigo" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:violet" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:white" & chr(34) & ">","")
+				w = replace(w, chr(34) & "color:black" & chr(34) & ">","")
+			end sub
+
+			Function id(o)
+				Set id = document.getElementById(o)
+			End Function
+
+			Sub Position
+				if len(document.selection.createRange().text) > 0 then
+					n=id("MyInput").innerText
+					If Left(n,2) = VbCrlf Then
+						Do While Left(n,2) = VbCrlf
+							n=Mid(n,3)
+						Loop
+						id("MyInput").innerText=n
+						Exit Sub
+					End If
+					Set Sel = document.selection.createRange()
+					Sel.moveStart "character", -Len(n)
+					s=sel.text
+					Do While Left(s,2) = vbCRLF
+						s=Mid(s,3)
+					Loop
+				end if
+			End Sub
+	
+			Sub ContentVBScipt
+				t = "<!------- Batch File portion -----------" & vbCRLF
+				t = t & "CLS" & vbCRLF
+				t = t & "MSHTA.EXE %0" & vbCRLF
+				t = t & "GOTO :EOF" & vbCRLF
+				t = t & "--->" & vbCRLF
+				t = t & "<!-------------- HTA portion --------------->" & vbCRLF
+				t = t & "<HTML>" & vbCRLF
+				t = t & "	<HEAD>" & vbCRLF
+				t = t & "		<TITLE>Script Hacker 1.00</TITLE>" & vbCRLF
+				t = t & "		<HTA:APPLICATION ID = " & chr(34) & "ScriptHack" & chr(34) & vbCRLF
+				t = t & "			WINDOWSTATE = " & chr(34) & "maximize" & chr(34) & vbCRLF
+				t = t & "			APPLICATIONNAME = " & chr(34) & "Script Hacker" & chr(34) & vbCRLF
+				t = t & "			CAPTION = " & chr(34) & "Create by Script Hacker" & chr(34) & vbCRLF
+				t = t & "		/>" & vbCRLF
+				t = t & "	<STYLE>" & vbCRLF
+				t = t & "			input {" & vbCRLF
+				t = t & "				border: 3px solid #007700;" & vbCRLF
+				t = t & "				padding: 5px;" & vbCRLF
+				t = t & "				font-family: Tahoma, sans-serif;" & vbCRLF
+				t = t & "				color:#00FF00;" & vbCRLF
+				t = t & "				background-color: #000000;" & vbCRLF
+				t = t & "			}" & vbCRLF
+				t = t & "			body {" & vbCRLF
+				t = t & "					color:#00FF00;" & vbCRLF
+				t = t & "					background-color: #000000;" & vbCRLF
+				t = t & "			}" & vbCRLF
+				t = t & "	</STYLE>" & vbCRLF
+				t = t & "	</HEAD>" & vbCRLF
+				t = t & "	<SCRIPT LANGUAGE=" & chr(34) & "VBScript" & chr(34) & ">" & vbCRLF
+				t = t & "		Public S, F" & vbCRLF
+				t = t & "		Sub IsRun()" & vbCRLF
+				t = t & "			Dim file, temp, objXML, objDocElem, ObjStream" & vbCRLF
+				t = t & "			Set file = CreateObject(" & chr(34) & "scripting.filesystemobject" & chr(34) & ")" & vbCRLF
+				t = t & "			temp = CreateObject(" & chr(34) & "WScript.Shell" & chr(34) & ").ExpandEnvironmentStrings(" & chr(34) & "%TEMP%" & chr(34) & ")" & vbCRLF
+				t = t & "			Set objXML = CreateObject(" & chr(34) & "MSXml2.DOMDocument" & chr(34) & ")" & vbCRLF
+				t = t & "			Set objDocElem = objXML.createElement(" & chr(34) & "Base64Data" & chr(34) & ")" & vbCRLF
+				t = t & "			objDocElem.DataType = " & chr(34) & "bin.base64" & chr(34) & vbCRLF
+				t = t & "			objDocElem.Text = S" & vbCRLF
+				t = t & "			Set objStream = CreateObject(" & chr(34) & "ADODB.Stream" & chr(34) & ")" & vbCRLF
+				t = t & "			objStream.Type = 1" & vbCRLF
+				t = t & "			objStream.Open" & vbCRLF
+				t = t & "			objStream.Write objDocElem.NodeTypedValue" & vbCRLF
+				t = t & "			objStream.SaveToFile	temp & " & chr(34) & "\" & chr(34) & " & F, 2" & vbCRLF
+				t = t & "			Set objStream = Nothing" & vbCRLF
+				t = t & "			set file = CreateObject(" & chr(34) & "WScript.Shell" & chr(34) & ")" & vbCRLF
+				t = t & "			file.run chr(34) & temp & " & chr(34) & "\" & chr(34) & " & F & chr(34)" & vbCRLF
+				t = t & "		End Sub" & vbCRLF
+				t = t & "		Sub IsFile(var)" & vbCRLF
+				t = t & "rem -- End Of CMD Script --" & vbCRLF
+				t = t & "			call IsRun" & vbCRLF
+				t = t & "		End Sub" & vbCRLF
+				t = t & "	<" & "/SCRIPT>" & vbCRLF
+				t = t & "	<BODY>" & vbCRLF
+				y = vbCRLF & "	</BODY>" & vbCRLF
+				y = y & "</HTML>" & vbCRLF
+			End Sub
+
+			Sub SaveContents
+				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile("My Project.CMD", 2, True)
+				file.Write(t & x & y)
+				file.Close
+				msgbox "Saved!"
+			End Sub
+
+			Sub InsertCommand
+				dim count, n, m, o, objXML, objDocElem, objStream, S
+				count = 1
+				if InputFile.Value <> "" then
+					Set objStream = CreateObject("ADODB.Stream")
+					objStream.Type = 1
+					objStream.Open
+					objStream.LoadFromFile (InputFile.Value)
+					Set objXML = CreateObject("MSXml2.DOMDocument")
+					Set objDocElem = objXML.createElement("Base64Data")
+					objDocElem.DataType = "bin.base64"
+					objDocElem.NodeTypedValue = objStream.Read()
+					S = replace(objDocElem.Text, chr(10), "")
+					Set objXML = Nothing
+					Set objDocElem = Nothing
+					Set objStream = Nothing
+					for n = 1 to len(x)
+						m = instr(n, x, "<input type=" & chr(34) & "button" & chr(34))
+						if m > 0 then
+							count = count + 1
+							n = m
+						end if
+					next
+					o = mid(InputFile.Value, instrrev(InputFile.Value,"\")+1)
+					if instr(t, o) = 0 then
+						t = replace(t,"rem -- End Of CMD Script --", "			if var = " & count & " then" & vbCRLF & "				F = " & chr(34) & o & chr(34) & vbCRLF & "				S = " & chr(34) & S & chr(34) & vbCRLF & "			end if" & vbCRLF & "rem -- End Of CMD Script --")
+						x = x & vbCRLF & "<input type=" & chr(34) & "button" & chr(34) & " value=" & chr(34) & "Run Script" & chr(34) & " onClick=" & chr(34) & "IsFile(" & count & ")" & chr(34) & "> " & o & "</br>"
+					else
+						msgbox "Found! File Script in HTML"
+					end if
+					id("MyInput").innerText = x
+				end if
+			End Sub
+
+		</script>
+	</head>
+	<body>
+<span style="color:#00FF00;">
+<pre>
+    .dMMMb  .aMMMb  dMMMMb  dMP dMMMMb dMMMMMMP     dMP dMP .aMMMb  .aMMMb  dMP dMP dMMMMMP dMMMMb     
+   dMP' VP dMP'VMP dMP.dMP amr dMP.dMP   dMP       dMP dMP dMP'dMP dMP'VMP dMP.dMP dMP     dMP.dMP     
+   VMMMb  dMP     dMMMMK  dMP dMMMMP'   dMP       dMMMMMP dMMMMMP dMP     dMMMMK  dMMMP   dMMMMK       
+ dP .dMP dMP.aMP dMP'AMF dMP dMP       dMP       dMP dMP dMP dMP dMP.aMP dMP'AMF dMP     dMP'AMF       
+ VMMMP'  VMMMP' dMP dMP dMP dMP       dMP       dMP dMP dMP dMP  VMMMP' dMP dMP dMMMMMP dMP dMP        
+</pre>
+</span>
+
+		<input type="button" value="H1"      onClick="SetTag(4)">
+		<input type="button" value="H2"      onClick="SetTag(5)">
+		<input type="button" value="H3"      onClick="SetTag(6)">
+		<input type="button" value="H4"      onClick="SetTag(7)">
+		<input type="button" value="H5"      onClick="SetTag(8)">
+		<input type="button" value="H6"      onClick="SetTag(9)">
+		<input type="button" value="B"       onClick="SetTag(1)" style="font-weight:bold">
+		<input type="button" value="Strong"  onClick="SetTag(31)" style="font-weight:bold">
+		<input type="button" value="I"       onClick="SetTag(2)" style="font-style:italic">
+		<input type="button" value="Em"       onClick="SetTag(32)" style="font-style:italic">
+		<input type="button" value="U"       onClick="SetTag(3)" style="text-decoration: underline">
+		<input type="button" value="Ins"       onClick="SetTag(33)" style="text-decoration: underline">
+		<input type="button" value="Strike"  onClick="SetTag(15)" style="text-decoration:line-through">
+		<input type="button" value="Del"     onClick="SetTag(30)"  style="text-decoration:line-through">
+		<input type="button" value="Big"     onClick="SetTag(13)">
+		<input type="button" value="Small"   onClick="SetTag(14)">
+		<input type="button" value="Sup"     onClick="SetTag(16)">
+		<input type="button" value="Sub"     onClick="SetTag(17)">
+		<input type="button" value="Address" onClick="SetTag(18)">
+		<input type="button" value="nbsp"      onClick="SetTag(26)">
+		<input type="button" value="ensp"      onClick="SetTag(27)">
+		<input type="button" value="emsp"      onClick="SetTag(28)">
+		<input type="button" value="BR"      onClick="SetTag(10)">
+		<input type="button" value="NoBR"    onClick="SetTag(21)">
+		<input type="button" value="WBR"     onClick="SetTag(22)">
+		<input type="button" value="Select Color -->">
+		<select id="ColorSelection" onChange="SetTag(29)">
+			<option style="color:black"   value="#444444" >Default  </option>
+			<option style="color:darkred" value="darkred" >Dark Red </option>
+			<option style="color:red"     value="red"     >Red      </option>
+			<option style="color:orange"  value="orange"  >Orange   </option>
+			<option style="color:brown"   value="brown"   >Brown    </option>
+			<option style="color:yellow"  value="yellow"  >Yellow   </option>
+			<option style="color:green"   value="green"   >Green    </option>
+			<option style="color:olive"   value="olive"   >Olive    </option>
+			<option style="color:cyan"    value="cyan"    >Cyan     </option>
+			<option style="color:blue"    value="blue"    >Blue     </option>
+			<option style="color:darkblue"value="darkblue">Dark Blue</option>
+			<option style="color:indigo"  value="indigo"  >Indigo   </option>
+			<option style="color:violet"  value="violet"  >Violet   </option>
+			<option style="color:white"   value="white"   >White    </option>
+			<option style="color:black"   value="black"   >Black    </option>
+		</select>
+		<input type="button" value="P"       onClick="SetTag(12)">
+		<input type="button" value="Pre"     onClick="SetTag(23)">
+		<input type="button" value="Code"    onClick="SetTag(24)">
+		<input type="button" value="XMP"     onClick="SetTag(19)">
+		<input type="button" value="Center"  onClick="SetTag(20)">
+		<input type="button" value="HR"      onClick="SetTag(11)">
+		<input type="button" value="Clear All Tag"      onClick="SetTag(25)" style="font-weight:bold;font-style:italic">
+		</br>Insert Script File ... 
+		<input type=file id=InputFile onChange="InsertCommand">
+		<input type="button" value="Generate To My Project.CMD"	onClick="SaveContents">
+		</br>
+		<textarea 	id="MyInput" 
+				onclick="Position" 
+				onKeyDown="Position"
+				style="float:left; height:65%; width:50%;">
+		</textarea>
+		<div id="Result" class="forumline"> 
+			<span style="color:red">Preview HTML</span>
+		</div>
+	</body>
+</html>
