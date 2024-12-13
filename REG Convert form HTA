@@ -1,12 +1,13 @@
-<html>
+﻿<html>
 	<head>
 		<META CHARSET="utf-8">
 		<HTA:APPLICATION
 			APPLICATIONNAME="RegConvert"
 			SCROLL="yes" 
+			ICON="%windir%\regedit.exe"
 			WINDOWSTATE="MAXIMIZE"
-			VERSION="1.0"/>
-		<title>โปรแกรมแปลง Registry เป็น Batch File</title>
+			VERSION="4.60"/>
+		<title>Registry Script to Batch File Command 4.60</title>
 		<style>
 			textarea {
 					float:left; 
@@ -29,7 +30,7 @@
 					font-family:Verdana, Arial, Helvetica, sans-serif;
 			}
 			input {		color:black;
-					width:200px;
+					width:300px;
 					background-color:'#cccccc';
 					border:white0pxsolid;
 					font-weight:bold;
@@ -48,12 +49,6 @@
 			}
 		</style>
 		<script language="VBS">
-			Sub SaveContent
-				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile("My Project.BAT", 2, True)
-				file.Write(id("MyOutput").innerText)
-				file.Close
-				msgbox "Saved!"
-			End Sub
 
 			sub FixData
 				MyInput.Value = replace(MyInput.Value,"“",chr(34))
@@ -85,12 +80,25 @@
 			end sub
 
 			Sub OpenFile
-				Dim file
+				Dim objStream, strData
 				if InputFile.Value <> "" then
-					Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile(InputFile.Value, 1, True)
-					MyInput.Value = file.ReadAll'
+					Set objStream = CreateObject("ADODB.Stream")
+					objStream.CharSet = "utf-8"
+					objStream.Open
+					objStream.LoadFromFile(InputFile.Value)
+					MyInput.value = objStream.ReadText()
+					objStream.Close
+					Set objStream = Nothing
+					if instr(1,MyInput.Value,"Windows Registry Editor Version 5.00") = 0 then
+						Set objStream = CreateObject("ADODB.Stream")
+						objStream.CharSet = "utf-16"
+						objStream.Open
+						objStream.LoadFromFile(InputFile.Value)
+						MyInput.value = objStream.ReadText()
+						objStream.Close
+						Set objStream = Nothing
+					end if
 					FixData
-					file.Close
 					InputFile.style.width = "100%"
 					MyOutput.Value = ""
 				end if
@@ -115,7 +123,7 @@
 				IsLogo = IsLogo & ":::                     .*' /  .*' ; .*`- +'  `*' " & vbCRLF
 				IsLogo = IsLogo & ":::                     `*-*   `*-*  `*-*'        " & vbCRLF
 				IsLogo = IsLogo & ":::                     (C) Tanutdech  Boonluelak." & vbCRLF
-				IsLogo = IsLogo & ":::                     REG Convert Free (Ver.3.0)" & vbCRLF
+				IsLogo = IsLogo & ":::                    REG Convert Free (Ver.4.60)" & vbCRLF
 				ShowLogo = "for /f " & chr(34) & "delims=: tokens=*" & chr(34) & " %%a in ('findstr /b ::: %0') do @echo(%%a" & vbCRLF
 				ShowLogo = ShowLogo & "pause" & vbCRLF
 				IsRunAdmin = "fsutil dirty query %systemdrive% >nul" & vbCRLF
@@ -131,12 +139,14 @@
 				MyOutput.Value = ""
 				IsCheck =  mid(MyInput.Value,1,Instr(1,MyInput.Value,vbCRLF))
 				if instr(1, IsCheck,"Windows Registry Editor Version 5.00") = 0 then
-					msgbox "ต้นฉบับไม่ใช่แฟ้ม Registry ไม่สามารถแปลงได้"
+					msgbox "Unknow File Type"
 				else
+					on error resume next
 					a = split(MyInput.Value,vbCRLF)
 					for n = 0 to ubound(a)
 						if left(a(n),1) <> ";" then
 							if instr(1,a(n),"[") <> 0 and instr(1,a(n),"]") <> 0 then
+								MyOutput.Value = MyOutput.Value & "echo." & a(n) & vbCRLF
 								IsHive = a(n)
 								IsHive = mid(IsHive,Instr(1,IsHive,"["))
 								IsHive = replace(IsHive,"HKEY_CURRENT_USER","HKCU")
@@ -157,29 +167,45 @@
 								IsKey = replace(IsKey,"=" & chr(34)," /t REG_SZ /d " & chr(34))
 							end if
 							if instr(1,IsKey,"=dword:") <> 0 then
-								IsKey = replace(IsKey,mid(IsKey,Instr(1,IsKey,":")+1),cstr(clng("&H0" & mid(IsKey,Instr(1,IsKey,":")+1))))
-								IsKey = replace(IsKey,"=dword:"," /t REG_DWORD /d ")
+								if mid(IsKey,Instr(1,IsKey,":")+1) = "ffffffff" then
+									IsKey = replace(IsKey,mid(IsKey,Instr(1,IsKey,":")+1)," 4294967295")
+									IsKey = replace(IsKey,"=dword:"," /t REG_DWORD /d")
+								else
+									IsKey = replace(IsKey,mid(IsKey,Instr(1,IsKey,":")+1),cstr(clng("&H0" & mid(IsKey,Instr(1,IsKey,":")+1))))
+									IsKey = replace(IsKey,"=dword:"," /t REG_DWORD /d ")
+								end if
 							end if
 							if instr(1,IsKey,"=hex:") <> 0 and IsHex = "" then
 								IsKey = replace(IsKey,"=hex:"," /t REG_MULTI_SZ /d ")
 								IsKey = replace(IsKey,",","")
 								IsKey = replace(IsKey,"\ ","")
 							end if
+							if instr(1,IsKey,"=hex(2):") <> 0 and IsHex = "" then
+								IsKey = replace(IsKey,"=hex(2):"," /t REG_MULTI_SZ /d ")
+								IsKey = replace(IsKey,",","")
+								IsKey = replace(IsKey,"\ ","")
+							end if
+							if instr(1,IsKey,"=hex(7):") <> 0 and IsHex = "" then
+								IsKey = replace(IsKey,"=hex(7):"," /t REG_MULTI_SZ /d ")
+								IsKey = replace(IsKey,",","")
+								IsKey = replace(IsKey,"\ ","")
+							end if
 							if right(IsKey,2) <> ",\" then
 								if left(IsKey,1) = "@" or left(IsKey,1) = chr(34) then
 									if right(IsKey,2) = "=-" then
-										IsData = "echo y|reg delete" & IsHive & IsKey & vbCRLF
+										IsData = "reg delete" & IsHive & IsKey 
 										IsData = replace(IsData,"deletereg","")
 										IsData = replace(IsData,"=-","")
-										IsDAta = replace(IsData,"/ve" & chr(34),"/v " & chr(34))
+										IsDAta = replace(IsData,"/ve" & chr(34)," /f /v " & chr(34))
 									else
-										IsData = IsHive & Iskey & vbCRLF
+										IsData = IsHive & Iskey
 									end if
-									IsData = replace(IsData,"echo y|reg delete %CheckHive% ","echo y|reg delete ")
-									IsData = replace(IsData," %CheckHive% ","echo y|reg add ")
+									IsData = "for /f " & chr(34) & "tokens=*" & chr(34) &" %%a in ('" &  IsData & "') do if not errorlevel 1 (echo.[0m[[32m OK [0m] " & IsKey & ")" & vbCRLF
+									IsData = replace(IsData,"reg delete %CheckHive% ","reg delete ")
+									IsData = replace(IsData," %CheckHive% ","reg add ")
 									IsData = replace(IsData,"[HK",chr(34) & "HK")
-									IsData = replace(IsData,"]" & chr(34),chr(34) & " /v " & chr(34))
-									IsData = replace(IsData,"]@ ",chr(34) & " /ve ")
+									IsData = replace(IsData,"]" & chr(34),chr(34) & " /f /v " & chr(34))
+									IsData = replace(IsData,"]@ ",chr(34) & " /f /ve ")
 									MyOutput.Value = MyOutput.value & IsData
 								end if
 								if left(a(n),2) = "[-" then
@@ -189,9 +215,10 @@
 									IsHive = replace(IsHive,"-HKEY_USERS","HKU")
 									IsHive = replace(IsHive,"-HKEY_CLASSES_ROOT","HKCR")
 									IsHive = replace(IsHive,"-HKEY_CURRENT_CONFIG","HKCC")
-									IsHive = replace(IsHive,"]",chr(34) & " /ve")
-									IsHive = replace(IsHive,"[","echo y|reg delete " & chr(34))
-									MyOutput.Value = IsHive & vbCRLF
+									IsHive = replace(IsHive,"]",chr(34) & " /f /ve")
+									IsHive = replace(IsHive,"[","reg delete " & chr(34))
+									IsHive = "for /f " & chr(34) & "tokens=*" & chr(34) &" %%a in ('" &  IsHive & "') do if not errorlevel 1 (echo.[0m[[32m OK [0m] " & IsHive & ")" & vbCRLF
+									MyOutput.Value = MyOutput.Value & IsHive & vbCRLF
 								end if
 							end if
 						end if	
@@ -199,6 +226,7 @@
 					MyOutput.Value = IsLogo & IsRunAdmin & MyOutput.value & vbCRLF & ShowLogo & vbCRLF
 				end if
 			end sub
+
 			Sub SaveIt
 				dim file
 				Set file = CreateObject("Scripting.FileSystemObject").OpenTextFile("MyScript.BAT", 2, True)
@@ -211,19 +239,20 @@
 	</head>
 	<body>
 		<pre>
- ____   _____  ____       ____                                _        _____                    
-|  _ \ | ____|/ ___|     / ___| ___   _ __ __   __ ___  _ __ | |_     |  ___|_ __  ___   ___    
-| |_) ||  _| | |  _     | |    / _ \ | '_ \\ \ / // _ \| '__|| __|    | |_  | '__|/ _ \ / _ \   
-|  _ < | |___| |_| |    | |___| (_) || | | |\ V /|  __/| |   | |_     |  _| | |  |  __/|  __/   
-|_| \_\|_____|\____|     \____|\___/ |_| |_| \_/  \___||_|    \__|    |_|   |_|   \___| \___|   
+██████╗ ███████╗ ██████╗      ██████╗ ██████╗ ███╗   ██╗██╗   ██╗███████╗██████╗ ████████╗    ███████╗██████╗ ███████╗███████╗    
+██╔══██╗██╔════╝██╔════╝     ██╔════╝██╔═══██╗████╗  ██║██║   ██║██╔════╝██╔══██╗╚══██╔══╝    ██╔════╝██╔══██╗██╔════╝██╔════╝    
+██████╔╝█████╗  ██║  ███╗    ██║     ██║   ██║██╔██╗ ██║██║   ██║█████╗  ██████╔╝   ██║       █████╗  ██████╔╝█████╗  █████╗      
+██╔══██╗██╔══╝  ██║   ██║    ██║     ██║   ██║██║╚██╗██║╚██╗ ██╔╝██╔══╝  ██╔══██╗   ██║       ██╔══╝  ██╔══██╗██╔══╝  ██╔══╝      
+██║  ██║███████╗╚██████╔╝    ╚██████╗╚██████╔╝██║ ╚████║ ╚████╔╝ ███████╗██║  ██║   ██║       ██║     ██║  ██║███████╗███████╗    
+╚═╝  ╚═╝╚══════╝ ╚═════╝      ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝   ╚═╝       ╚═╝     ╚═╝  ╚═╝╚══════╝╚══════╝    
 (Copyright) Tanutdech   Boonluelak, 2024.
 		</pre>
 		<input type="file" class="File" id="InputFile" onChange="OpenFile"><br>
-		<h5>กรุณาเปิดแฟ้ม Registry นามสกุล .REG</h5>
+		<h5>Open File .REG</h5>
 		<textarea id="MyInput"></textarea>
 		<br><br>
-		<input type="button" value="แปลงเป็น .BAT" onClick="RegToBat">
-		<input type="button" value="บันทึกเป็น MyScript.BAT" onClick="SaveIt">
+		<input type="button" value="Convert to Batch File Command" onClick="RegToBat">
+		<input type="button" value="Save Content to Batch Script" onClick="SaveIt">
 		<textarea id="MyOutput"></textarea>
 	</body>
 </html>
