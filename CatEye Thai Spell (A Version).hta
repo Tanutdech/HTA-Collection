@@ -1,0 +1,94 @@
+﻿<html>
+	<head>
+		<title>Thai Spell (A Version) 2024, The MIT Licence.</title>
+		<META CHARSET="utf-8">
+		<META HTTP-EQUIV="MSThemeCompatible" CONTENT="YES">
+		<HTA:APPLICATION
+		  APPLICATIONNAME="Spell"
+		  WINDOWSTATE="MAXIMIZE"
+		>
+		<style>
+			textarea {		
+					font-size:20;
+					width: 100%;
+					height: 250px;
+					font-size: 20;
+			}
+		</style>
+	</head>
+	<script language="VBScript">
+		sub IsClick
+			dim IsCheck, IsData, n
+' อักษรสียงกลาง = ไก่ จิก ชฎา ปฏัก โดน ตา บิน ไป เอย --------------------------------------------------------------------
+			MyOutput.Value = MyInput.Value
+			MyOutput.Value = replace(MyOutput.Value,"ก", " ก") ' ก
+			MyOutput.Value = replace(MyOutput.Value,"จ", " จ") ' จ
+			MyOutput.Value = replace(MyOutput.Value,"ฎ", " ฎ") ' ฎ
+			MyOutput.Value = replace(MyOutput.Value,"ฏ", " ฏ") ' ฏ
+			MyOutput.Value = replace(MyOutput.Value,"ด", " ด") ' ด
+			MyOutput.Value = replace(MyOutput.Value,"ต", " ต") ' ต
+			MyOutput.Value = replace(MyOutput.Value,"บ", " บ") ' บ
+			MyOutput.Value = replace(MyOutput.Value,"ป", " ป") ' ป
+			MyOutput.Value = replace(MyOutput.Value,"อ", " อ") ' อ
+' อักษรเสียงสูง = ขว้าง ฃวด เฉียด ฐาน ถูก ผล ฝัก ศาลา ฤๅษี เสา หัก -------------------------------------------------------
+			MyOutput.Value = replace(MyOutput.Value,"ข", " ข") ' ข
+			MyOutput.Value = replace(MyOutput.Value,"ฃ", " ฃ") ' ฃ
+			MyOutput.Value = replace(MyOutput.Value,"ฉ", " ฉ") ' ฉ
+			MyOutput.Value = replace(MyOutput.Value,"ฐ", " ฐ") ' ฐ
+			MyOutput.Value = replace(MyOutput.Value,"ถ", " ถ") ' ถ
+			MyOutput.Value = replace(MyOutput.Value,"ผ", " ผ") ' ผ
+			MyOutput.Value = replace(MyOutput.Value,"ฝ", " ฝ") ' ฝ
+			MyOutput.Value = replace(MyOutput.Value,"ศ", " ศ") ' ศ
+			MyOutput.Value = replace(MyOutput.Value,"ษ", " ษ") ' ษ
+			MyOutput.Value = replace(MyOutput.Value,"ส", " ส") ' ส
+			MyOutput.Value = replace(MyOutput.Value,"ห", " ห") ' ห
+' อักษรเสียงต่ำ = คล้าย ฅน ฆ่า งู ช้าง ซาก กระเฌอ หญิง มณโฑ เฒ่า เณร ทาน ธูป ใน โพธิ์ ฟัน สำเภา ไม้ ยักษ์ ร่วง ลง ว่าว จุฬา แฮ
+			MyOutput.Value = replace(MyOutput.Value,"ค", " ค") ' ค
+			MyOutput.Value = replace(MyOutput.Value,"ฅ", " ฅ") ' ฅ
+			MyOutput.Value = replace(MyOutput.Value,"ฆ", " ฆ") ' ฆ
+			MyOutput.Value = replace(MyOutput.Value,"ง", " ง") ' ง
+			MyOutput.Value = replace(MyOutput.Value,"ช", " ช") ' ช
+			MyOutput.Value = replace(MyOutput.Value,"ซ", " ซ") ' ซ
+			MyOutput.Value = replace(MyOutput.Value,"ฌ", " ฌ") ' ฌ
+			MyOutput.Value = replace(MyOutput.Value,"ญ", " ญ") ' ญ
+			MyOutput.Value = replace(MyOutput.Value,"ฑ", " ฑ") ' ฑ
+			MyOutput.Value = replace(MyOutput.Value,"ฒ", " ฒ") ' ฒ
+			MyOutput.Value = replace(MyOutput.Value,"ณ", " ณ") ' ณ
+			MyOutput.Value = replace(MyOutput.Value,"ท", " ท") ' ท
+			MyOutput.Value = replace(MyOutput.Value,"ธ", " ธ") ' ธ
+			MyOutput.Value = replace(MyOutput.Value,"น", " น") ' น
+			MyOutput.Value = replace(MyOutput.Value,"พ", " พ") ' พ
+			MyOutput.Value = replace(MyOutput.Value,"ฟ", " ฟ") ' ฟ
+			MyOutput.Value = replace(MyOutput.Value,"ภ", " ภ") ' ภ
+			MyOutput.Value = replace(MyOutput.Value,"ม", " ม") ' ม
+			MyOutput.Value = replace(MyOutput.Value,"ย", " ย") ' ย
+			MyOutput.Value = replace(MyOutput.Value,"ร", " ร") ' ร
+			MyOutput.Value = replace(MyOutput.Value,"ล", " ล") ' ล
+			MyOutput.Value = replace(MyOutput.Value,"ว", " ว") ' ว
+			MyOutput.Value = replace(MyOutput.Value,"ฬ", " ฬ") ' ฬ
+			MyOutput.Value = replace(MyOutput.Value,"ฮ", " ฮ") ' ฮ
+' สระตัดเสียง -----------------------------------------------------------------------------------------------------------------------------------------
+			MyOutput.Value = replace(MyOutput.Value,chr(236),chr(236) & " ") ' การันต์
+' สระรวบเสียง หรือ สระกึ่งเสียง --------------------------------------------------------------------------------------------------------------------------
+rem			MyOutput.Value = replace(MyOutput.Value,chr(209),chr(209) & " " ) ' ไม้หันอากาศ
+			MyOutput.Value = replace(MyOutput.Value,chr(231),chr(231) & " ") ' ไม้ไต่คู้
+' สระครึ่งเสียง = อะ อิ อึ อุ ------------------------------------------------------------------------------------------------------------------------------
+			MyOutput.Value = replace(MyOutput.Value,chr(208),chr(208) & " ") ' อะ
+' สระเต็มเสียง = อา อี อือ อู เอ แอ โอ ไอ ----------------------------------------------------------------------------------------------------------------
+			MyOutput.Value = replace(MyOutput.Value,chr(224)," " & chr(224)) ' เอ
+			MyOutput.Value = replace(MyOutput.Value,chr(225)," " & chr(225)) ' แอ
+			MyOutput.Value = replace(MyOutput.Value,chr(226)," " & chr(226)) ' โอ
+			MyOutput.Value = replace(MyOutput.Value,chr(228)," " & chr(228)) ' ไอ
+' เทียบอักษรไม้ม้วน 20 คำ -----------------------------------------------------------------------------------------------------------------------------
+			MyOutput.Value = replace(MyOutput.Value,chr(227)," " & chr(227)) ' ใอ
+' สระรูปผสม ------------------------------------------------------------------------------------------------------------------------------------------
+			MyOutput.Value = replace(MyOutput.Value,chr(211),chr(211) & " ") ' อำ
+		end sub
+	</script>
+	<body>
+		<H4>(Copyright) Tanutdech  Boonluelak, 2024.</H4>
+		<textarea id="MyInput"></textarea>
+		<input type="button" class="button" value="OK" onClick="IsClick">
+		<textarea id="MyOutput"></textarea>
+	</body>
+</html>
