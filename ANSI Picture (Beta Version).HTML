@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>ANSI Picture (Beta version).</title>
+</head>
+<body>
+	<h2>https://github.com/Tanutdech</h2>
+	<canvas id="canvas" width="80" height="80" style="border:1px solid #000;"></canvas>
+	<br><br>
+	File Type JPEG<br>
+	<input type="file" id="fileInput" accept="image/jpeg" />
+	<br><br>
+	<button onclick="downloadBatchFile()">Generate Batch File</button>
+	<script>
+		const canvas = document.getElementById('canvas');
+		const ctx = canvas.getContext('2d');
+		let img = new Image();
+		let imageData;
+		document.getElementById('fileInput').addEventListener('change', (event) => {
+			const file = event.target.files[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					img.onload = () => {
+						ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+						ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image
+						imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); // Get image data
+					};
+					img.src = e.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+		});
+		function getPixel(x, y) {
+			const index = (y * imageData.width + x) * 4;
+			return {
+				r: imageData.data[index],
+				g: imageData.data[index + 1],
+				b: imageData.data[index + 2],
+				a: imageData.data[index + 3]
+			};
+		}
+		function setPixel(x, y, color) {
+			const index = (y * imageData.width + x) * 4;
+			imageData.data[index] = color.r;
+			imageData.data[index + 1] = color.g;
+			imageData.data[index + 2] = color.b;
+			imageData.data[index + 3] = 255; // Full opacity
+		}
+		function isColor(pixel) {
+			let b = (pixel.r >= 128) ? 1 : 0;
+			let g = (pixel.g >= 128) ? 2 : 0;
+			let r = (pixel.b >= 128) ? 4 : 0;
+			let l = (pixel.a >= 128) ? 8 : 0;
+			let result = r + g + b;
+			
+			// Here you can simulate color output
+			if (result === 0) return { r: 0, g: 0, b: 0 }; // Black
+			if (result === 1) return { r: 0, g: 0, b: 255 }; // Blue
+			if (result === 2) return { r: 0, g: 255, b: 0 }; // Green
+			if (result === 3) return { r: 0, g: 255, b: 255 }; // Cyan
+			if (result === 4) return { r: 255, g: 0, b: 0 }; // Red
+			if (result === 5) return { r: 255, g: 0, b: 255 }; // Magenta
+			if (result === 6) return { r: 255, g: 255, b: 0 }; // Yellow
+			if (result === 7) return { r: 255, g: 255, b: 255 }; // White
+		}
+		function downloadBatchFile() {
+			let fsContent = '@echo off\n';
+			fsContent += "title Create by : ANSI Picture (Beta version). Download...https://github.com/Tanutdech\n";
+			fsContent += "chcp 437\n";
+			fsContent += "mode 80,40\n";
+			let c = 0;
+			for (let y = 0; y < 80; y += 2) {
+				c++;
+				fsContent += "Echo.";
+				for (let x = 0; x < 80; x++) {
+					let pixel1 = getPixel(x, y);
+					let pixel2 = getPixel(x, y + 1);
+					fsContent += isANSI(pixel1, pixel2);
+				}
+				fsContent += '\n';
+			}
+			fsContent += "Echo.[40m\n";
+			fsContent += "pause>nul\n";
+
+			// Create a Blob and trigger download
+			const blob = new Blob([fsContent], { type: 'text/plain' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = 'Test.bat';
+			link.click();
+		}
+		function isANSI(pixel1, pixel2) {
+			// Simplified version for ANSI color conversion
+			let r1 = pixel1.r >= 128 ? 1 : 0;
+			let g1 = pixel1.g >= 128 ? 2 : 0;
+			let b1 = pixel1.b >= 128 ? 4 : 0;
+			let r2 = pixel2.r >= 128 ? 1 : 0;
+			let g2 = pixel2.g >= 128 ? 2 : 0;
+			let b2 = pixel2.b >= 128 ? 4 : 0;
+			
+			let color1 = "[3" + (r1 + g1 + b1) + ";";
+			let color2 = "4" + (r2 + g2 + b2) + "m";
+
+			return color1 + color2 + "฿";
+		}
+	</script>
+</body>
+</html>
+
