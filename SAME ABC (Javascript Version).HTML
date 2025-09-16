@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Same ABC 2.00</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #f0f4ff, #e0e6f7);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      font-size: 1.2em;
+      color: #444;
+      margin-bottom: 20px;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 4px;
+      max-width: 90vmin;
+      margin: 0 auto 30px;
+      aspect-ratio: 1 / 1;
+    }
+
+    label {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: calc(1.5vmin + 0.5vw);
+      font-weight: bold;
+      border-radius: 6px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    label:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+
+    .A { background-color: #e74c3c; color: white; }
+    .B { background-color: #27ae60; color: white; }
+    .C { background-color: #f1c40f; color: black; }
+    .D { background-color: #1abc9c; color: white; }
+    .E { background-color: #9b59b6; color: white; }
+    .F { background-color: #3498db; color: yellow; }
+    .G { background-color: #ecf0f1; color: #bdc3c7; }
+
+    .footer {
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .footer a {
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      label {
+        font-size: calc(1vmin + 1vw);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Same ABC 2.00</h1>
+  <div class="message" id="message">คลิกที่ป้ายที่ตรงกันเพื่อเริ่มเกม!</div>
+  <div class="game-board" id="content"></div>
+
+  <div class="footer">
+    <p>พัฒนาโดย: <a href="#">ทีมงานพัฒนา</a></p>
+  </div>
+
+  <script>
+    const MaxColor = 5;
+    const MaxCol = 15;
+    const MaxRow = 15;
+    const MaxIndex = MaxCol * MaxRow;
+    let A = Array(MaxIndex).fill(null);
+    let B = Array(MaxIndex).fill(null);
+    let MaxIndexRow = MaxIndex - MaxRow;
+
+    window.onload = function() {
+      randomizeLabels();
+      showLabels();
+    };
+
+    function randomizeLabels() {
+      for (let N = 0; N < MaxIndex; N++) {
+        let r = Math.floor(Math.random() * MaxColor);
+        switch (r) {
+          case 0: B[N] = "A"; break;
+          case 1: B[N] = "B"; break;
+          case 2: B[N] = "C"; break;
+          case 3: B[N] = "D"; break;
+          case 4: B[N] = "E"; break;
+          case 5: B[N] = "F"; break;
+        }
+        A[N] = B[N];
+      }
+    }
+
+    function showLabels() {
+      let isLabel = '';
+      for (let N = 0; N < MaxIndex; N++) {
+        isLabel += `<label class="${A[N]}" onclick="isClick(${N})">${B[N]}</label>`;
+      }
+      document.getElementById("content").innerHTML = isLabel;
+    }
+
+    function isClick(i) {
+      maskWhite(i);
+      clearWhiteDown();
+      clearWhiteLeft();
+      showLabels();
+      checkGameOver();
+    }
+
+    function maskWhite(i) {
+      if (A[i] !== "G") {
+        if (i - MaxCol >= 0 && i % MaxCol === (i - MaxCol) % MaxCol && B[i] === B[i - MaxCol]) {
+          A[i] = "G";
+          maskWhite(i - MaxCol);
+        }
+        if (i + MaxCol < MaxIndex && i % MaxCol === (i + MaxCol) % MaxCol && B[i] === B[i + MaxCol]) {
+          A[i] = "G";
+          maskWhite(i + MaxCol);
+        }
+        if (i - 1 >= 0 && Math.floor(i / MaxCol) === Math.floor((i - 1) / MaxCol) && B[i] === B[i - 1]) {
+          A[i] = "G";
+          maskWhite(i - 1);
+        }
+        if (i + 1 < MaxIndex && Math.floor(i / MaxCol) === Math.floor((i + 1) / MaxCol) && B[i] === B[i + 1]) {
+          A[i] = "G";
+          maskWhite(i + 1);
+        }
+      }
+    }
+
+    function clearWhiteDown() {
+      for (let N = 0; N < MaxIndex; N++) {
+        if (A[N] === "G") B[N] = "";
+      }
+      for (let N = 0; N < MaxIndex - 1; N++) {
+        if (A[N] === "G") {
+          for (let O = N; O >= 0; O -= MaxCol) {
+            if (O - MaxCol >= 0) {
+              A[O] = A[O - MaxCol];
+              B[O] = B[O - MaxCol];
+              A[O - MaxCol] = "G";
+              B[O - MaxCol] = "";
+            }
+          }
+        }
+      }
+    }
+
+    function clearWhiteLeft() {
+      let C = 0;
+      for (let N = MaxIndexRow; N < MaxIndex; N++) {
+        if (A[N] === "G") C++;
+      }
+      for (let M = 1; M <= C; M++) {
+        for (let N = MaxIndexRow; N < MaxIndex; N++) {
+          if (A[N] === "G") {
+            for (let O = N; O >= 0; O -= MaxCol) {
+              if (O + 1 < MaxIndex && Math.floor(O / MaxCol) === Math.floor((O + 1) / MaxCol)) {
+                A[O] = A[O + 1];
+                B[O] = B[O + 1];
+                A[O + 1] = "G";
+                B[O + 1] = "";
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function checkGameOver() {
+      let isGameOver = true;
+      for (let i = 0; i < MaxIndex; i++) {
+        if (A[i] !== "G") {
+          if ((i - MaxCol) >= 0 && i % MaxCol === (i - MaxCol) % MaxCol && B[i] === B[i - MaxCol]) {
+            isGameOver = false;
+            break;
+          }
+          if ((i + MaxCol) < MaxIndex && i % MaxCol === (i + MaxCol) % MaxCol && B[i] === B[i + MaxCol]) {
+            isGameOver = false;
+            break;
+          }
+          if ((i - 1) >= 0 && Math.floor(i / MaxCol) === Math.floor((i - 1) / MaxCol) && B[i] === B[i - 1]) {
+            isGameOver = false;
+            break;
+          }
+          if ((i + 1) < MaxIndex && Math.floor(i / MaxCol) === Math.floor((i + 1) / MaxCol) && B[i] === B[i + 1]) {
+            isGameOver = false;
+            break;
+          }
+        }
+      }
+      if (isGameOver) {
+        document.getElementById("message").innerHTML = "🎉 เกมจบแล้ว! คลิกเพื่อเริ่มใหม่.";
+      }
+    }
+  </script>
+</body>
+</html>
+
