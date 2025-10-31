@@ -1,0 +1,306 @@
+<HEAD>
+		<HTA:APPLICATION
+			ID = "POG89"
+			APPLICATIONNAME = "POG89"
+			ICON = "Pog89.ICO"
+			VERSION = 1.00
+			MAXIMIZEBUTTON = "No"
+			MINIMIZEBUTTON = "Yes"
+			SCROLL = "Yes"
+			SELECTION = "No"
+			BORDERSTYLE = "Normal"
+			WINDOWSTATE = "Maximize"
+		>
+		<META CHARSET="utf-8">
+		<STYLE>
+			img {
+				width: 100px;
+				height: 150px;
+				border: 1px solid #000000;
+				color:#0000FF;
+			}
+			.button {
+				width: 100px;
+				height: 50px;
+				border: 3px solid #007700;
+			}
+			.money {
+				text-align: right;
+				width: 100px;
+			}
+		</STYLE>
+		<SCRIPT LANGUAGE="VBS">
+			dim isBet
+			dim playercard(52)
+			dim p1_n1, p1_n2, p1_n3
+			dim p2_n1, p2_n2, p2_n3
+			dim p1_p1, p1_p2, p1_p3
+			dim p2_p1, p2_p2, p2_p3
+			dim p1_c1, p1_c2, p1_c3
+			dim p2_c1, p2_c2, p2_c3
+			sub window_onLoad
+				moneyp1.innertext = 10000
+				moneyp2.innertext = 2000
+				randomize
+				call clearcard
+			end sub
+			
+			sub clearcard
+				for n = 0 to 52
+					playercard(n) = false
+				next
+				Document.getElementById("baht100").checked = false
+				Document.getElementById("baht200").checked = false
+				Document.getElementById("baht300").checked = false
+				Document.getElementById("baht400").checked = false
+				Document.getElementById("baht500").checked = false
+				Document.getElementById("baht100").disabled = false
+				Document.getElementById("baht200").disabled = false
+				Document.getElementById("baht300").disabled = false
+				Document.getElementById("baht400").disabled = false
+				Document.getElementById("baht500").disabled = false
+				Document.getElementById("cmd1").disabled = true
+				Document.getElementById("cmd2").disabled = true
+				Document.getElementById("cmd3").disabled = true
+				Document.getElementById("cmd4").disabled = true
+			end sub
+			
+			function numbercard(num)
+				if num <= 52 then numbercard = num - 39
+				if num <= 39 then numbercard = num - 26
+				if num <= 26 then numbercard = num - 13
+				if num <= 13 then numbercard = num
+			end function
+
+			function symbolcard(num)
+				if num <= 52 then symbolcard = 4
+				if num <= 39 then symbolcard = 3
+				if num <= 26 then symbolcard = 2
+				if num <= 13 then symbolcard = 1
+			end function
+
+			function cardpoints(num)
+				if num > 9 then cardpoints = 0 else cardpoints = num
+			end function
+
+			function randomcard()
+				do
+					r = ((rnd * 1000) mod 51) + 2
+				loop while playercard(r) = true
+				playercard(r) = true
+				randomcard = r
+			end function
+
+			function isPog(num1, num2)
+				if SumCard(num1, num2, num3) >= 8 then isPog = true else isPog = false
+			end function
+
+			function isCall(num1, num2)
+				if SumCard(num1, num2, num3) < 4 then isCall = true else isCall = false
+			end function
+
+			function SumCard(num1, num2, num3)
+				SumCard = cardpoints(numbercard(num1))
+				SumCard = SumCard + cardpoints(numbercard(num2))
+				SumCard = SumCard mod 10
+				SumCard = SumCard + cardpoints(numbercard(num3))
+				SumCard = SumCard mod 10
+			end function
+
+			function isLevel(num1, num2, num3)
+				if isPog(num1, num2) and num3 = 0 then
+					if SumCard(num1, num2, num3) = 9 then isLevel = 23
+					if SumCard(num1, num2, num3) = 8 then isLevel = 22
+				elseif	numbercard(num1) = numbercard(num2) and _
+					numbercard(num2) = numbercard(num3) then
+					if numcard(num1) = 1 then isLevel = 21
+					if numcard(num1) = 13 then isLevel = 20 ' K
+					if numcard(num1) = 12 then isLevel = 19 ' Q
+					if numcard(num1) = 11 then isLevel = 18 ' J
+					if numcard(num1) = 10 then isLevel = 17 ' 10
+					if numcard(num1) = 8 then isLevel = 16 ' 8
+					if numcard(num1) = 7 then isLevel = 15 ' 7
+					if numcard(num1) = 6 then isLevel = 14 ' 6
+					if numcard(num1) = 5 then isLevel = 13 ' 5
+					if numcard(num1) = 3 then isLevel = 12 ' 3
+					if numcard(num1) = 2 then isLevel = 11 ' 2
+				elseif	numbercard(num1) > 10 and _
+					numbercard(num2) > 10 and _
+					numbercard(num3) > 10 then
+					isLevel = 10 ' J Q K
+				else
+					isLevel = SumCard(num1, num2, num3)
+				end if
+			end function
+
+			function isMsgLevel(num1, num2, num3)
+				if IsLevel(num1, num2, num3) >= 22 then 
+					isMsgLevel = "ป็อก! " & SumCard(num1, num2, num3)
+				elseif IsLevel(num1, num2, num3) < 22 and IsLevel(num1, num2, num3) > 10 then
+					if numbercard(num1) = 1 then
+						isMsgLevel = "ตอง A"
+					elseif numbercard(num1) = 13 then
+						isMsgLevel = "ตอง K"
+					elseif numbercard(num1) = 12 then
+						isMsgLevel = "ตอง Q"
+					elseif numbercard(num1) = 11 then
+						isMsgLevel = "ตอง J"
+					else
+						isMsgLevel = "ตอง " & num1
+					end if
+				elseif IsLevel(num1, num2, num3) = 10 then
+					isMsgLevel = "เซียน..."
+				else
+					isMsgLevel = "ไพ่ " & SumCard(num1, num2, num3)
+				end if
+			end function
+
+			function isBonus(num1, num2, num3)
+				if 	isLevel(num1, num2, num3) < 22 and _
+					isLevel(num1, num2, num3) > 10 then
+					isBonus = 5
+				elseif 	isLevel(num1, num2, num3) = 10 then
+					isBonus = 4
+				elseif	symbolcard(num1) = symbolcard(num2) and _
+					symbolcard(num2) = symbolcard(num3) then
+					isBonus = 3
+				elseif	symbolcard(num1) = symbolcard(num2) and num3 = 0 or _
+					numbercard(num1) = numbercard(num2) and num3 = 0 then
+					isBonus = 2
+				else
+					isBonus = 1
+				end if
+			end function
+
+			sub isDeal
+				p2_c1 = randomcard()
+				p2_c2 = randomcard()
+				p2_c3 = 0
+				p1c1.src="Image Pog89\0.BMP"
+				p1c2.src="Image Pog89\0.BMP"
+				p1c3.src="Image Pog89\-1.BMP"
+				p2c1.src="Image Pog89\" & p2_c1 & ".BMP"
+				p2c2.src="Image Pog89\" & p2_c2 & ".BMP"
+				if p2_c3 = 0 then
+					p2c3.src="Image Pog89\-1.BMP"
+				else
+					p2c3.src="Image Pog89\" & p2_c3 & ".BMP"
+				end if
+				Document.getElementById("baht100").disabled = true
+				Document.getElementById("baht200").disabled = true
+				Document.getElementById("baht300").disabled = true
+				Document.getElementById("baht400").disabled = true
+				Document.getElementById("baht500").disabled = true
+				if isCall(p2_c1, p2_c2) then
+					Document.getElementById("cmd1").disabled = true
+					Document.getElementById("cmd2").disabled = true
+					Document.getElementById("cmd3").disabled = false
+					Document.getElementById("cmd4").disabled = true
+				elseif isPog(p2_c1, p2_c2) then
+					Document.getElementById("cmd1").disabled = true
+					Document.getElementById("cmd2").disabled = true
+					Document.getElementById("cmd3").disabled = true
+					Document.getElementById("cmd4").disabled = false
+				else
+					Document.getElementById("cmd1").disabled = true
+					Document.getElementById("cmd2").disabled = false
+					Document.getElementById("cmd3").disabled = false
+					Document.getElementById("cmd4").disabled = true
+				end if
+			end sub
+
+			sub Check(var)
+				p1c1.src="Image Pog89\0.BMP"
+				p1c2.src="Image Pog89\0.BMP"
+				p1c3.src="Image Pog89\-1.BMP"
+				p2c1.src="Image Pog89\0.BMP"
+				p2c2.src="Image Pog89\0.BMP"
+				p2c3.src="Image Pog89\-1.BMP"
+				isBet = var
+				Document.getElementById("cmd1").disabled = false
+				Document.getElementById("cmd2").disabled = true
+				Document.getElementById("cmd3").disabled = true
+				Document.getElementById("cmd4").disabled = true
+			end sub
+
+			sub Stay
+				Document.getElementById("cmd1").disabled = true
+				Document.getElementById("cmd2").disabled = true
+				Document.getElementById("cmd3").disabled = true
+				Document.getElementById("cmd4").disabled = false
+			end sub
+
+			sub CallCard3
+				p2_c3 = randomcard()
+				p2c3.src="Image Pog89\" & p2_c3 & ".BMP"
+				Document.getElementById("cmd1").disabled = true
+				Document.getElementById("cmd2").disabled = true
+				Document.getElementById("cmd3").disabled = true
+				Document.getElementById("cmd4").disabled = false
+			end sub
+
+			sub isOpen
+				p1_c1 = randomcard()
+				p1_c2 = randomcard()
+				p1_c3 = 0
+				if isCall(p1_c1, p1_c2) then p1_c3 = randomcard()
+				p1c1.src="Image Pog89\" & p1_c1 & ".BMP"
+				p1c2.src="Image Pog89\" & p1_c2 & ".BMP"
+				if p1_c3 = 0 then 
+					p1c3.src="Image Pog89\-1.BMP"
+				else
+					p1c3.src="Image Pog89\" & p1_c3 & ".BMP"
+				end if
+				if isLevel(p1_c1, p1_c2, p1_c3) > isLevel(p2_c1, p2_c2, p2_c3) then
+					if isPog(p1_c1, p1_c2) then
+						msgbox	"เจ้ามือป็อก! " & isMsgLevel(p1_c1, p1_c2, p1_c3) & vbCRLF & _
+							isBonus(p1_c1, p1_c2, p1_c3) & " เด้ง" & _
+							" คุณเสียเงิน... " & isBet * isBonus(p1_c1, p1_c2, p1_c3) & " บาท"
+					else
+						msgbox	"เจ้ามือชนะ " & isMsgLevel(p1_c1, p1_c2, P1_c3) & vbCRLF & _
+							isBonus(p1_c1, p1_c2, p1_c3) & " เด้ง"  & _
+							"คุณเสียเงิน..." & isBet * isBonus(p1_c1, p1_c2, p1_c3) & " บาท"
+					end if
+				elseif isLevel(p2_c1, p2_c2, p2_c3) > isLevel(p1_c1, p1_c2, p1_c3) then
+					msgbox	isMsgLevel(p2_c1, p2_c2, p2_c3) &  vbCRLF & _
+						isBonus(p2_c1, p2_c2, p2_c3) & " เด้ง! คุณชนะ  ได้เงิน..." & _
+						isBet * isBonus(p2_c1, p2_c2, p2_c3) & " บาท"
+				else
+					msgbox	"เจ้ามือ " & isMsgLevel(p1_c1, p1_c2, P1_c3) & _
+						" เสมอ ไพ่คุณ " & isMsgLevel(p2_c1, p2_c2, P2_c3) & _
+						" ไม่ได้ไม่เสีย"
+				end if
+
+				call clearcard
+			end sub
+		</SCRIPT>
+	</HEAD>
+	<BODY>
+		ไพ่เจ้ามือ<br>
+		<img id=p1c1 src="">
+		<img id=p1c2 src="">
+		<img id=p1c3 src=""><br><br>
+		<hr>
+		เงินเจ้ามือ <label id=moneyp1 class=money></label>&nbsp;บาท
+		<hr>
+		ไพ่คุณ<br>
+		<img id=p2c1 src="">
+		<img id=p2c2 src="">
+		<img id=p2c3 src=""><br><br>
+		<hr>
+		เงินของคุณ <label id=moneyp2 class=money></label>&nbsp;บาท
+		<hr>
+		เดิมพัน 
+		<input name=bet type=Radio id=baht100 onClick=Check(100)> 100 </input>
+		<input name=bet type=Radio id=baht200 onClick=Check(200)> 200 </input>
+		<input name=bet type=Radio id=baht300 onClick=Check(300)> 300 </input>
+		<input name=bet type=Radio id=baht400 onClick=Check(400)> 400 </input>
+		<input name=bet type=Radio id=baht500 onClick=Check(500)> 500 </input>
+		<hr>
+		<input id=cmd1 type=button class=button value="เปิดไพ่"  onClick=isDeal>
+		<input id=cmd2 type=button class=button value="อยู่" onClick=Stay>
+		<input id=cmd3 type=button class=button value="เรียก" onClick=CallCard3>
+		<input id=cmd4 type=button class=button value="คิดเงิน" onClick=isOpen>
+	</BODY>
+
+</HTML>
